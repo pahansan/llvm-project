@@ -250,25 +250,29 @@ MODULE_PASS_WITH_PARAMS(
     parseStructuralHashPrinterPassOptions, "detailed;call-target-ignored")
 
 MODULE_PASS_WITH_PARAMS(
-    "default", "", [&](OptimizationLevel L) {
+    "default", "",
+    [&](OptimizationLevel L) {
       setupOptionsForPipelineAlias(PTO, L);
       return buildPerModuleDefaultPipeline(L);
     },
     parseOptLevelParam, "O0;O1;O2;O3;Os;Oz")
 MODULE_PASS_WITH_PARAMS(
-    "thinlto-pre-link", "", [&](OptimizationLevel L) {
+    "thinlto-pre-link", "",
+    [&](OptimizationLevel L) {
       setupOptionsForPipelineAlias(PTO, L);
       return buildThinLTOPreLinkDefaultPipeline(L);
     },
     parseOptLevelParam, "O0;O1;O2;O3;Os;Oz")
 MODULE_PASS_WITH_PARAMS(
-    "thinlto", "", [&](OptimizationLevel L) {
+    "thinlto", "",
+    [&](OptimizationLevel L) {
       setupOptionsForPipelineAlias(PTO, L);
       return buildThinLTODefaultPipeline(L, nullptr);
     },
     parseOptLevelParam, "O0;O1;O2;O3;Os;Oz")
 MODULE_PASS_WITH_PARAMS(
-    "lto-pre-link", "", [&](OptimizationLevel L) {
+    "lto-pre-link", "",
+    [&](OptimizationLevel L) {
       setupOptionsForPipelineAlias(PTO, L);
       if (PTO.UnifiedLTO) {
         // When UnifiedLTO is enabled, use the ThinLTO pre-link pipeline. This
@@ -280,13 +284,15 @@ MODULE_PASS_WITH_PARAMS(
     },
     parseOptLevelParam, "O0;O1;O2;O3;Os;Oz")
 MODULE_PASS_WITH_PARAMS(
-    "lto", "", [&](OptimizationLevel L) {
+    "lto", "",
+    [&](OptimizationLevel L) {
       setupOptionsForPipelineAlias(PTO, L);
       return buildLTODefaultPipeline(L, nullptr);
     },
     parseOptLevelParam, "O0;O1;O2;O3;Os;Oz")
 MODULE_PASS_WITH_PARAMS(
-    "fatlto-pre-link", "", [&](FatLTOOptions Opts) {
+    "fatlto-pre-link", "",
+    [&](FatLTOOptions Opts) {
       setupOptionsForPipelineAlias(PTO, Opts.OptLevel);
       return buildFatLTODefaultPipeline(Opts.OptLevel, Opts.ThinLTO,
                                         Opts.EmitSummary);
@@ -725,9 +731,7 @@ FUNCTION_PASS_WITH_PARAMS(
     "trap;rt;rt-abort;min-rt;min-rt-abort;merge;guard=N")
 FUNCTION_PASS_WITH_PARAMS(
     "expand-fp", "ExpandFpPass",
-    [TM = TM](CodeGenOptLevel OL) {
-      return ExpandFpPass(TM, OL);
-    },
+    [TM = TM](CodeGenOptLevel OL) { return ExpandFpPass(TM, OL); },
     parseExpandFpOptions, "O0;O1;O2;O3")
 
 #undef FUNCTION_PASS_WITH_PARAMS
@@ -765,6 +769,7 @@ LOOP_PASS("indvars", IndVarSimplifyPass())
 LOOP_PASS("invalidate<all>", InvalidateAllAnalysesPass())
 LOOP_PASS("loop-bound-split", LoopBoundSplitPass())
 LOOP_PASS("loop-deletion", LoopDeletionPass())
+LOOP_PASS("loop-peel-with-state", LoopPeelWithStatePass())
 LOOP_PASS("loop-idiom", LoopIdiomRecognizePass())
 LOOP_PASS("loop-idiom-vectorize", LoopIdiomVectorizePass())
 LOOP_PASS("loop-instsimplify", LoopInstSimplifyPass())
@@ -815,27 +820,33 @@ MODULE_CALLBACK("pipeline-start-callbacks", invokePipelineStartEPCallbacks)
 
 // There are some full lto specific ones that are ignored here for now
 #ifdef MODULE_LTO_CALLBACK
-MODULE_LTO_CALLBACK("pipeline-early-simplification-callbacks", invokePipelineEarlySimplificationEPCallbacks)
-MODULE_LTO_CALLBACK("optimizer-early-callbacks", invokeOptimizerEarlyEPCallbacks)
+MODULE_LTO_CALLBACK("pipeline-early-simplification-callbacks",
+                    invokePipelineEarlySimplificationEPCallbacks)
+MODULE_LTO_CALLBACK("optimizer-early-callbacks",
+                    invokeOptimizerEarlyEPCallbacks)
 MODULE_LTO_CALLBACK("optimizer-last-callbacks", invokeOptimizerLastEPCallbacks)
 #endif
 #undef MODULE_LTO_CALLBACK
 
 #ifdef FUNCTION_CALLBACK
 FUNCTION_CALLBACK("peephole-callbacks", invokePeepholeEPCallbacks)
-FUNCTION_CALLBACK("scalar-optimizer-late-callbacks", invokeScalarOptimizerLateEPCallbacks)
-FUNCTION_CALLBACK("vectorizer-start-callbacks", invokeVectorizerStartEPCallbacks)
+FUNCTION_CALLBACK("scalar-optimizer-late-callbacks",
+                  invokeScalarOptimizerLateEPCallbacks)
+FUNCTION_CALLBACK("vectorizer-start-callbacks",
+                  invokeVectorizerStartEPCallbacks)
 FUNCTION_CALLBACK("vectorizer-end-callbacks", invokeVectorizerEndEPCallbacks)
 #endif
 #undef FUNCTION_CALLBACK
 
 #ifdef CGSCC_CALLBACK
-CGSCC_CALLBACK("cgscc-optimizer-late-callbacks", invokeCGSCCOptimizerLateEPCallbacks)
+CGSCC_CALLBACK("cgscc-optimizer-late-callbacks",
+               invokeCGSCCOptimizerLateEPCallbacks)
 #endif
 #undef CGSCC_CALLBACK
 
 #ifdef LOOP_CALLBACK
-LOOP_CALLBACK("late-loop-optimizations-callbacks", invokeLateLoopOptimizationsEPCallbacks)
+LOOP_CALLBACK("late-loop-optimizations-callbacks",
+              invokeLateLoopOptimizationsEPCallbacks)
 LOOP_CALLBACK("loop-optimizer-end-callbacks", invokeLoopOptimizerEndEPCallbacks)
 #endif
 #undef LOOP_CALLBACK
