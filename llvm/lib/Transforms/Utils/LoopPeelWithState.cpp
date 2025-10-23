@@ -1,7 +1,11 @@
 #include "llvm/Transforms/Utils/LoopPeelWithState.h"
 #include "llvm/Analysis/LoopInfo.h"
 #include "llvm/Analysis/ScalarEvolution.h"
+#include "llvm/Analysis/ScalarEvolutionExpressions.h"
 #include "llvm/IR/Dominators.h"
+#include "llvm/IR/Instruction.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/Support/Casting.h"
 #include "llvm/Transforms/Utils/LoopPeel.h"
 #include "llvm/Transforms/Utils/LoopUtils.h"
 
@@ -25,15 +29,17 @@ PreservedAnalyses LoopPeelWithStatePass::run(Loop &L, LoopAnalysisManager &AM,
 
 bool LoopPeelWithStatePass::hasStateVariables(Loop &L) {
   BasicBlock *Header = L.getHeader();
-
   BasicBlock *Latch = L.getLoopLatch();
+
+  Value *IndVar = L.getCanonicalInductionVariable();
 
   for (PHINode &Phi : Header->phis()) {
     if (Phi.getBasicBlockIndex(Latch) < 0)
       continue;
 
     Value *LatchValue = Phi.getIncomingValueForBlock(Latch);
-    if (isDerivedFromIndVar(LatchValue, L))
+
+    if (isDerivedFromIndVar(LatchValue, L) && !(&Phi == IndVar))
       return true;
   }
 
@@ -41,5 +47,21 @@ bool LoopPeelWithStatePass::hasStateVariables(Loop &L) {
 }
 
 bool LoopPeelWithStatePass::isDerivedFromIndVar(Value *DerivedValue, Loop &L) {
-  return DerivedValue == L.getCanonicalInductionVariable();
+  Value *IndVar = L.getCanonicalInductionVariable();
+  if (!IndVar || !DerivedValue)
+    return false;
+
+  if (DerivedValue == IndVar)
+    return true;
+
+  Value *V = DerivedValue;
+  while (auto *CI = dyn_cast<Instruction>(V)) {
+    V = CI->getOperand(0);
+    if (!V)
+      return false;
+    if (V == IndVar)
+      return true;
+  }
+
+  return false;
 }
